@@ -3,19 +3,36 @@
 
 #include <iostream>
 #include <windows.h>
+#include <thread>
+
+using namespace std::literals::chrono_literals;
+
+void wait_awake(std::stop_token st)
+{
+
+    auto res = SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED);
+    if (res == 0)
+    {
+        std::cerr << "das ging schief!";
+    }
+    else
+    {
+        while (!st.stop_requested())
+            std::this_thread::sleep_for(10s);
+    }
+
+}
+
 
 int main()
 {
     std::cout << "setting ""system required"" execution state!\n";
-    auto res = SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED);
-    if (res == 0)
-    {
-	    std::cerr << "das ging schief!";
-        return 1;
-    }
-    std::cin.ignore();
-    std::cout << "exiting...\n";
 
+    auto t = std::jthread(wait_awake);
+    
+    std::cin.ignore();
+
+    std::cout << "exiting...\n";
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
